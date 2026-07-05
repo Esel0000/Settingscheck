@@ -37,7 +37,14 @@ foreach ($kw in $Keywords) {
     }
 }
 
-Write-Host "Settings Scan by Esel" -ForegroundColor Cyan
+Write-Host "" 
+Write-Host "   ████  ██████  ████████  ███████  ████████  ████████  ██████" -ForegroundColor Green
+Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
+Write-Host "  ██████ ██████     ██    ███████ ██████   ██████  ██████" -ForegroundColor Green
+Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
+Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
+Write-Host "" 
+Write-Host "        Settings Scan by Esel" -ForegroundColor Cyan
 $Host.UI.RawUI.WindowTitle = "Settings Scan by Esel"
 
 $SearchRoots = @()
@@ -77,10 +84,14 @@ $SearchRoots = $SearchRoots | Select-Object -Unique
 $Results = @()
 $scanIndex = 0
 
+$frames = @("|", "/", "-", "\\")
+$matrixChars = @("0", "1", "█", "▓", "▒", "░")
 foreach ($root in $SearchRoots) {
     $scanIndex++
-    Write-Host "[$scanIndex/$($SearchRoots.Count)] Scanne: $root" -ForegroundColor DarkGray
-    Write-Progress -Activity "Settings Scan" -Status "Scanne $root" -PercentComplete ([int](($scanIndex / $SearchRoots.Count) * 100))
+    $percent = [int](($scanIndex / $SearchRoots.Count) * 100)
+    $frame = $frames[($scanIndex - 1) % $frames.Count]
+    $matrixChar = $matrixChars[($scanIndex - 1) % $matrixChars.Count]
+    Write-Host "`r[$frame] $matrixChar SCAN $scanIndex/$($SearchRoots.Count) [$percent%] $root" -ForegroundColor Green -NoNewline
     if (-not (Test-Path $root)) { continue }
 
     $category = if ($root -eq $DesktopPath) { "Desktop" }
@@ -117,8 +128,7 @@ $ColorMap = @{
     Sonstige = 15105570
 }
 
-Write-Progress -Activity "Settings Scan" -Completed
-Write-Host "Scan abgeschlossen. Sende Ergebnis an den Webhook..." -ForegroundColor Yellow
+Write-Host "`r[✓] SCAN abgeschlossen. Sende Ergebnis an den Webhook..." -ForegroundColor Yellow
 
 $embeds = @()
 $embeds += @{
