@@ -53,6 +53,16 @@ Get-PSDrive -PSProvider FileSystem | ForEach-Object {
 }
 $SearchRoots += $recycleBinPaths
 
+$fiveMPaths = @()
+Get-PSDrive -PSProvider FileSystem | ForEach-Object {
+    $root = $_.Root
+    if (-not (Test-Path $root)) { return }
+    Get-ChildItem -Path $root -Directory -Depth 4 -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^(FiveM|resources|FXServer)$' } |
+        ForEach-Object { $fiveMPaths += $_.FullName }
+}
+$SearchRoots += $fiveMPaths
+
 $fixedDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
 foreach ($drive in $fixedDrives) {
     if (Test-Path $drive) {
@@ -69,15 +79,17 @@ $scanIndex = 0
 
 foreach ($root in $SearchRoots) {
     $scanIndex++
+    Write-Host "[$scanIndex/$($SearchRoots.Count)] Scanne: $root" -ForegroundColor DarkGray
     Write-Progress -Activity "Settings Scan" -Status "Scanne $root" -PercentComplete ([int](($scanIndex / $SearchRoots.Count) * 100))
     if (-not (Test-Path $root)) { continue }
 
     $category = if ($root -eq $DesktopPath) { "Desktop" }
     elseif ($root -eq $DownloadsPath) { "Downloads" }
     elseif ($root -match '\$Recycle\.Bin') { "Papierkorb" }
+    elseif ($root -match 'FiveM|resources|FXServer') { "FiveM Mods" }
     else { "Sonstige" }
 
-    $depth = if ($category -in @("Desktop", "Downloads", "Papierkorb")) { 3 } else { 1 }
+    $depth = if ($category -in @("Desktop", "Downloads", "Papierkorb", "FiveM Mods")) { 3 } else { 1 }
 
     foreach ($pattern in $Patterns) {
         Get-ChildItem -Path $root -Recurse -File -Include $pattern -Depth $depth -ErrorAction SilentlyContinue |
