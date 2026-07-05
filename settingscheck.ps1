@@ -25,11 +25,10 @@ $Keywords = @(
     "jam", "jamfps",
     "loco",
     "rino", "wanda", "byemilio", "saze", "lery", "ilias",
-    "bandera", "subasic", "yache", "basler", "pasa", "simba",
-    "berkan", "lund", "nehat", "avatar", "pruda", "nve"
+    "pruda", "nve"
 )
 
-$Extensions = @("rpf", "zip", "rar")
+$Extensions = @("rpf", "zip")
 
 $Patterns = @()
 foreach ($kw in $Keywords) {
@@ -42,15 +41,27 @@ Write-Host "Settings Scan by Esel" -ForegroundColor Cyan
 $Host.UI.RawUI.WindowTitle = "Settings Scan by Esel"
 
 $SearchRoots = @()
-$fixedDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
-foreach ($drive in $fixedDrives) {
-    if (Test-Path $drive) { $SearchRoots += $drive }
-}
-
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
 $DownloadsPath = Join-Path $HOME "Downloads"
 $SearchRoots += $DesktopPath
 $SearchRoots += $DownloadsPath
+
+$recycleBinPaths = @()
+Get-PSDrive -PSProvider FileSystem | ForEach-Object {
+    $rb = Join-Path $_.Root '$Recycle.Bin'
+    if (Test-Path $rb) { $recycleBinPaths += $rb }
+}
+$SearchRoots += $recycleBinPaths
+
+$fixedDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 } | Select-Object -ExpandProperty DeviceID
+foreach ($drive in $fixedDrives) {
+    if (Test-Path $drive) {
+        $rootName = Split-Path -Leaf $drive
+        if ($rootName -in @("C", "D")) {
+            $SearchRoots += $drive
+        }
+    }
+}
 $SearchRoots = $SearchRoots | Select-Object -Unique
 
 $Results = @()
@@ -63,8 +74,10 @@ foreach ($root in $SearchRoots) {
     elseif ($root -match '\$Recycle\.Bin') { "Papierkorb" }
     else { "Sonstige" }
 
+    $depth = if ($category -in @("Desktop", "Downloads", "Papierkorb")) { 3 } else { 1 }
+
     foreach ($pattern in $Patterns) {
-        Get-ChildItem -Path $root -Recurse -File -Include $pattern -ErrorAction SilentlyContinue |
+        Get-ChildItem -Path $root -Recurse -File -Include $pattern -Depth $depth -ErrorAction SilentlyContinue |
             ForEach-Object {
                 $Results += [PSCustomObject]@{
                     Datei     = $_.Name
