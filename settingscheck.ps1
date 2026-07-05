@@ -38,11 +38,9 @@ foreach ($kw in $Keywords) {
 }
 
 Write-Host "" 
-Write-Host "   ████  ██████  ████████  ███████  ████████  ████████  ██████" -ForegroundColor Green
-Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
-Write-Host "  ██████ ██████     ██    ███████ ██████   ██████  ██████" -ForegroundColor Green
-Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
-Write-Host "  ██  ██ ██   ██    ██    ██   ██ ██       ██    ██   ██" -ForegroundColor Green
+Write-Host "   010101  101010  010101  101010  010101  101010" -ForegroundColor Green
+Write-Host "   101010  010101  101010  010101  101010  010101" -ForegroundColor Green
+Write-Host "   010101  101010  010101  101010  010101  101010" -ForegroundColor Green
 Write-Host "" 
 Write-Host "        Settings Scan by Esel" -ForegroundColor Cyan
 $Host.UI.RawUI.WindowTitle = "Settings Scan by Esel"
@@ -91,7 +89,7 @@ foreach ($root in $SearchRoots) {
     $percent = [int](($scanIndex / $SearchRoots.Count) * 100)
     $frame = $frames[($scanIndex - 1) % $frames.Count]
     $matrixChar = $matrixChars[($scanIndex - 1) % $matrixChars.Count]
-    Write-Host "`r[$frame] $matrixChar SCAN $scanIndex/$($SearchRoots.Count) [$percent%] $root" -ForegroundColor Green -NoNewline
+    Write-Host "`r[$frame] $matrixChar SCAN [$percent%]" -ForegroundColor Green -NoNewline
     if (-not (Test-Path $root)) { continue }
 
     $category = if ($root -eq $DesktopPath) { "Desktop" }
